@@ -1,0 +1,105 @@
+Mar 30 2026 14:12:59
+{"type":2,"message":"fopen(\/var\/www\/html\/wp-content\/uploads\/ast-block-templates-json\/index.html): Failed to open stream: Permission denied","file":"\/var\/www\/html\/wp-admin\/includes\/class-wp-filesystem-direct.php","line":66}
+
+Mar 30 2026 14:12:59
+{"type":2,"message":"fopen(\/var\/www\/html\/wp-content\/uploads\/ast-block-templates-json\/index.html): Failed to open stream: Permission denied","file":"\/var\/www\/html\/wp-admin\/includes\/class-wp-filesystem-direct.php","line":66}
+
+Mar 30 2026 14:12:58
+{"type":2,"message":"fopen(\/var\/www\/html\/wp-content\/uploads\/ast-block-templates-json\/index.html): Failed to open stream: Permission denied","file":"\/var\/www\/html\/wp-admin\/includes\/class-wp-filesystem-direct.php","line":66}
+
+Mar 30 2026 14:12:58
+{"type":2,"message":"fopen(\/var\/www\/html\/wp-content\/uploads\/ast-block-templates-json\/index.html): Failed to open stream: Permission denied","file":"\/var\/www\/html\/wp-admin\/includes\/class-wp-filesystem-direct.php","line":66}
+
+Mar 30 2026 14:12:58
+{"type":2,"message":"fopen(\/var\/www\/html\/wp-content\/uploads\/ast-block-templates-json\/index.html): Failed to open stream: Permission denied","file":"\/var\/www\/html\/wp-admin\/includes\/class-wp-filesystem-direct.php","line":66}
+
+Mar 30 2026 14:12:58
+{"type":2,"message":"fopen(\/var\/www\/html\/wp-content\/uploads\/ast-block-templates-json\/index.html): Failed to open stream: Permission denied","file":"\/var\/www\/html\/wp-admin\/includes\/class-wp-filesystem-direct.php","line":66}
+
+Mar 30 2026 14:12:58
+{"type":2,"message":"fopen(\/var\/www\/html\/wp-content\/uploads\/ast-block-templates-json\/index.html): Failed to open stream: Permission denied","file":"\/var\/www\/html\/wp-admin\/includes\/class-wp-filesystem-direct.php","line":66}
+
+Mar 30 2026 14:12:59
+{"type":2,"message":"fopen(\/var\/www\/html\/wp-content\/uploads\/ast-block-templates-json\/index.html): Failed to open stream: Permission denied","file":"\/var\/www\/html\/wp-admin\/includes\/class-wp-filesystem-direct.php","line":66}
+
+Mar 30 2026 14:12:59
+{"type":2,"message":"fopen(\/var\/www\/html\/wp-content\/uploads\/ast-block-templates-json\/index.html): Failed to open stream: Permission denied","file":"\/var\/www\/html\/wp-admin\/includes\/class-wp-filesystem-direct.php","line":66}
+
+Mar 30 2026 14:12:59
+{"type":2,"message":"fopen(\/var\/www\/html\/wp-content\/uploads\/ast-block-templates-json\/index.html): Failed to open stream: Permission denied","file":"\/var\/www\/html\/wp-admin\/includes\/class-wp-filesystem-direct.php","line":66}
+
+Mar 30 2026 14:12:59
+{"Number":2,"Message":"Cannot use bool as array","File":"\/var\/www\/html\/wp-content\/plugins\/all-in-one-wp-migration\/lib\/model\/export\/class-ai1wm-export-content.php","Line":123}
+
+Mar 30 2026 14:12:59
+{"Number":2,"Message":"Cannot use bool as array","File":"\/var\/www\/html\/wp-content\/plugins\/all-in-one-wp-migration\/lib\/model\/export\/class-ai1wm-export-content.php","Line":123}
+
+Mar 30 2026 14:12:59
+{"Number":2,"Message":"Cannot use bool as array","File":"\/var\/www\/html\/wp-content\/plugins\/all-in-one-wp-migration\/lib\/model\/export\/class-ai1wm-export-content.php","Line":123}
+
+Mar 30 2026 14:12:59
+{"Number":2,"Message":"Cannot use bool as array","File":"\/var\/www\/html\/wp-content\/plugins\/all-in-one-wp-migration\/lib\/model\/export\/class-ai1wm-export-content.php","Line":123}
+
+Mar 30 2026 14:12:59
+{"type":2,"message":"fopen(\/var\/www\/html\/wp-content\/uploads\/ast-block-templates-json\/index.html): Failed to open stream: Permission denied","file":"\/var\/www\/html\/wp-admin\/includes\/class-wp-filesystem-direct.php","line":66}
+
+Mar 30 2026 14:12:59
+{"Number":2,"Message":"Cannot use bool as array","File":"\/var\/www\/html\/wp-content\/plugins\/all-in-one-wp-migration\/lib\/model\/export\/class-ai1wm-export-media.php","Line":123}
+
+Mar 30 2026 14:12:59
+{"Number":2,"Message":"Cannot use bool as array","File":"\/var\/www\/html\/wp-content\/plugins\/all-in-one-wp-migration\/lib\/model\/export\/class-ai1wm-export-media.php","Line":123}
+
+Mar 30 2026 14:12:59
+{"Number":2,"Message":"Cannot use bool as array","File":"\/var\/www\/html\/wp-content\/plugins\/all-in-one-wp-migration\/lib\/model\/export\/class-ai1wm-export-media.php","Line":123}
+
+Mar 30 2026 14:12:59
+{"Number":2,"Message":"Cannot use bool as array","File":"\/var\/www\/html\/wp-content\/plugins\/all-in-one-wp-migration\/lib\/model\/export\/class-ai1wm-export-media.php","Line":123}
+
+Mar 30 2026 14:12:59
+{"type":2,"message":"fopen(\/var\/www\/html\/wp-content\/uploads\/ast-block-templates-json\/index.html): Failed to open stream: Permission denied","file":"\/var\/www\/html\/wp-admin\/includes\/class-wp-filesystem-direct.php","line":66}
+
+Mar 30 2026 14:13:02
+{"Number":2,"Message":"Cannot use bool as array","File":"\/var\/www\/html\/wp-content\/plugins\/all-in-one-wp-migration\/lib\/model\/export\/class-ai1wm-export-plugins.php","Line":123}
+
+Mar 30 2026 14:13:02
+{"Number":2,"Message":"Cannot use bool as array","File":"\/var\/www\/html\/wp-content\/plugins\/all-in-one-wp-migration\/lib\/model\/export\/class-ai1wm-export-plugins.php","Line":123}
+
+Mar 30 2026 14:13:02
+{"Number":2,"Message":"Cannot use bool as array","File":"\/var\/www\/html\/wp-content\/plugins\/all-in-one-wp-migration\/lib\/model\/export\/class-ai1wm-export-plugins.php","Line":123}
+
+Mar 30 2026 14:13:02
+{"Number":2,"Message":"Cannot use bool as array","File":"\/var\/www\/html\/wp-content\/plugins\/all-in-one-wp-migration\/lib\/model\/export\/class-ai1wm-export-plugins.php","Line":123}
+
+Mar 30 2026 14:13:02
+{"type":2,"message":"fopen(\/var\/www\/html\/wp-content\/uploads\/ast-block-templates-json\/index.html): Failed to open stream: Permission denied","file":"\/var\/www\/html\/wp-admin\/includes\/class-wp-filesystem-direct.php","line":66}
+
+Mar 30 2026 14:13:03
+{"Number":2,"Message":"Cannot use bool as array","File":"\/var\/www\/html\/wp-content\/plugins\/all-in-one-wp-migration\/lib\/model\/export\/class-ai1wm-export-themes.php","Line":123}
+
+Mar 30 2026 14:13:03
+{"Number":2,"Message":"Cannot use bool as array","File":"\/var\/www\/html\/wp-content\/plugins\/all-in-one-wp-migration\/lib\/model\/export\/class-ai1wm-export-themes.php","Line":123}
+
+Mar 30 2026 14:13:03
+{"Number":2,"Message":"Cannot use bool as array","File":"\/var\/www\/html\/wp-content\/plugins\/all-in-one-wp-migration\/lib\/model\/export\/class-ai1wm-export-themes.php","Line":123}
+
+Mar 30 2026 14:13:03
+{"Number":2,"Message":"Cannot use bool as array","File":"\/var\/www\/html\/wp-content\/plugins\/all-in-one-wp-migration\/lib\/model\/export\/class-ai1wm-export-themes.php","Line":123}
+
+Mar 30 2026 14:13:03
+{"type":2,"message":"fopen(\/var\/www\/html\/wp-content\/uploads\/ast-block-templates-json\/index.html): Failed to open stream: Permission denied","file":"\/var\/www\/html\/wp-admin\/includes\/class-wp-filesystem-direct.php","line":66}
+
+Mar 30 2026 14:13:03
+{"Number":2,"Message":"Cannot use bool as array","File":"\/var\/www\/html\/wp-content\/plugins\/all-in-one-wp-migration\/lib\/model\/export\/class-ai1wm-export-database.php","Line":88}
+
+Mar 30 2026 14:13:03
+{"type":2,"message":"fopen(\/var\/www\/html\/wp-content\/uploads\/ast-block-templates-json\/index.html): Failed to open stream: Permission denied","file":"\/var\/www\/html\/wp-admin\/includes\/class-wp-filesystem-direct.php","line":66}
+
+Mar 30 2026 14:13:03
+{"type":2,"message":"fopen(\/var\/www\/html\/wp-content\/uploads\/ast-block-templates-json\/index.html): Failed to open stream: Permission denied","file":"\/var\/www\/html\/wp-admin\/includes\/class-wp-filesystem-direct.php","line":66}
+
+Mar 30 2026 14:13:04
+{"type":2,"message":"fopen(\/var\/www\/html\/wp-content\/uploads\/ast-block-templates-json\/index.html): Failed to open stream: Permission denied","file":"\/var\/www\/html\/wp-admin\/includes\/class-wp-filesystem-direct.php","line":66}
+
+Mar 30 2026 14:13:04
+{"type":2,"message":"fopen(\/var\/www\/html\/wp-content\/uploads\/ast-block-templates-json\/index.html): Failed to open stream: Permission denied","file":"\/var\/www\/html\/wp-admin\/includes\/class-wp-filesystem-direct.php","line":66}
+
