@@ -143,9 +143,7 @@ class Background_Process_Image extends Background_Process {
 	 */
 	protected function process_image( $image, $item ) {
 		\ewwwio_debug_message( '<b>' . __METHOD__ . '()</b>' );
-		$output          = array();
-		$time_adjustment = 0;
-		$attempts        = $item['attempts'];
+		$attempts = $item['attempts'];
 
 		// Prevents the 'updates' column from increasing, because this is intentional, usually.
 		// And even if it isn't, we probably have no way of tracking the source.
@@ -157,7 +155,7 @@ class Background_Process_Image extends Background_Process {
 		// See if the image needs fetching from a CDN.
 		if ( ! \ewwwio_is_file( $image->file ) ) {
 			$meta      = \wp_get_attachment_metadata( $image->attachment_id );
-			$file_path = \ewww_image_optimizer_remote_fetch( $image->attachment_id, $meta );
+			$file_path = \ewww_image_optimizer_remote_fetch( (int) $image->attachment_id, $meta );
 			// Nuke the meta, otherwise this will trigger unnecessary metadata updates,
 			// which should be reserved for conversion/resize operations on the full-size image only.
 			unset( $meta );
@@ -196,15 +194,17 @@ class Background_Process_Image extends Background_Process {
 				if ( empty( $meta ) || ! \is_array( $meta ) ) {
 					$meta = \wp_get_attachment_metadata( $image->attachment_id );
 				}
-				$new_dimensions = \ewww_image_optimizer_resize_upload( $image->file );
+				if ( empty( $meta['ewww_noresize'] ) ) {
+					$new_dimensions = \ewww_image_optimizer_resize_upload( $image->file );
+				}
 				if ( ! empty( $new_dimensions ) && \is_array( $new_dimensions ) ) {
 					$meta['width']  = $new_dimensions[0];
 					$meta['height'] = $new_dimensions[1];
 					if ( ewww_image_optimizer_get_option( 'ewww_image_optimizer_preserve_originals' ) ) {
 						$scaled_file = ewww_image_optimizer_scaled_filename( $image->file );
+						global $wpdb;
 						if ( ewwwio_is_file( $scaled_file ) ) {
 							$already_optimized = \ewww_image_optimizer_find_already_optimized( $scaled_file );
-							global $wpdb;
 							$wpdb->update(
 								$wpdb->ewwwio_images,
 								array(

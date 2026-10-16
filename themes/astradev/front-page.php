@@ -29,6 +29,22 @@ $pf_skills = [
 
 $pf_projects = [
     [
+        'title'       => 'BossaBox — Tech Lead',
+        'description' => 'Liderança técnica com foco em arquitetura de backend e qualidade de engenharia, construindo plataformas web do zero, do desenho do domínio à produção. Padrões arquiteturais viram guardrails automatizados (CI, hooks, testes, cobertura, regras de dependência), e a IA entra no fluxo de desenvolvimento com instruções por repositório, skills e agentes revisores de código.',
+        'tags'        => [ 'Java', 'Spring Boot', 'PostgreSQL', 'Vue.js', 'Nuxt', 'TypeScript', 'AWS', 'Liderança' ],
+        'url'         => 'https://www.linkedin.com/in/gabriel-henrique-stamato-a5497780/',
+        'repo'        => '#',
+        'period'      => 'fev/2026 – atual',
+    ],
+    [
+        'title'       => 'Futura Markets — Full Stack Developer',
+        'description' => 'Freelance em produtos digitais, serviços backend e sistemas internos de automação: features full-stack, integrações, APIs e robôs de automação em Python para processos repetitivos e tratamento de dados.',
+        'tags'        => [ 'TypeScript', 'Node.js', 'React', 'Python', 'Automação', 'SQL' ],
+        'url'         => 'https://www.linkedin.com/in/gabriel-henrique-stamato-a5497780/',
+        'repo'        => '#',
+        'period'      => 'nov/2025 – mai/2026',
+    ],
+    [
         'title'       => 'Advanced Corretora — Technical Lead',
         'description' => 'Liderei a transformação digital da corretora: site institucional, plataforma de câmbio online e interface entre time técnico e negócio. Gerenciei pipelines CI/CD, infraestrutura AWS e times de desenvolvimento.',
         'tags'        => [ 'NestJS', 'Next.js', 'ReactJS', 'MongoDB', 'AWS', 'Terraform', 'Amazon ECS', 'Liderança' ],
@@ -78,6 +94,33 @@ $pf_projects = [
     ],
 ];
 
+$pf_portfolio = [
+    [
+        'title'       => 'AesthetIQ',
+        'description' => 'Plataforma SaaS que gera prévias fotorrealistas com IA para procedimentos de harmonização orofacial. Inclui relatórios comerciais, histórico por paciente, gestão de clínicas com permissões por perfil e conformidade com a LGPD.',
+        'tags'        => [ 'Next.js', 'IA Generativa', 'SaaS', 'JWT', 'LGPD' ],
+        'url'         => 'https://www.aesthetiqapp.com/',
+        'image'       => 'aesthetiq.jpg',
+        'period'      => 'Freelance',
+    ],
+    [
+        'title'       => 'Quem de Nós?',
+        'description' => 'Jogo de perguntas multiplayer no navegador para casais, amigos e família, de 2 a 20 pessoas. Salas por link, QR code ou código, modo TV e seis modos de jogo. Ninguém precisa instalar nada para jogar.',
+        'tags'        => [ 'Next.js', 'Multiplayer', 'Tempo real', 'Web' ],
+        'url'         => 'https://quemdenos.com/',
+        'image'       => 'quemdenos.jpg',
+        'period'      => 'Projeto pessoal',
+    ],
+    [
+        'title'       => 'MalaCheck',
+        'description' => 'App para iPhone que gera a lista da mala em 1 minuto a partir do destino, das datas e das atividades. Funciona offline, explica cada item e aprende com as viagens anteriores.',
+        'tags'        => [ 'iOS', 'Mobile', 'Offline-first', 'Assinaturas' ],
+        'url'         => 'https://malacheck.pandoratechsolutions.com/',
+        'image'       => 'malacheck.jpg',
+        'period'      => 'Projeto pessoal',
+    ],
+];
+
 $pf_social = [
     'GitHub'   => 'https://github.com/stamatogabriel',
     'LinkedIn' => 'https://www.linkedin.com/in/gabriel-henrique-stamato-a5497780/',
@@ -92,6 +135,43 @@ $contact_url = home_url( '/contact/' );
 $blog_url    = home_url( '/blog/' );
 
 $pf_page_content = get_post_field( 'post_content', get_queried_object_id() );
+
+$pf_render_card = function ( $project, $i ) {
+    ?>
+    <div class="pf-project-card">
+        <?php if ( ! empty( $project['image'] ) ) : ?>
+            <a class="pf-project-card__shot" href="<?php echo esc_url( $project['url'] ); ?>" target="_blank" rel="noopener noreferrer" tabindex="-1" aria-hidden="true">
+                <img src="<?php echo esc_url( get_stylesheet_directory_uri() . '/assets/img/portfolio/' . $project['image'] ); ?>" alt="" width="1280" height="800" loading="lazy" decoding="async" />
+            </a>
+        <?php endif; ?>
+        <span class="pf-project-card__num">0<?php echo ( $i + 1 ); ?></span>
+        <h3 class="pf-project-card__title"><?php echo esc_html( $project['title'] ); ?></h3>
+        <?php if ( ! empty( $project['period'] ) ) : ?>
+            <span class="pf-project-card__period"><?php echo esc_html( $project['period'] ); ?></span>
+        <?php endif; ?>
+        <p class="pf-project-card__desc"><?php echo esc_html( $project['description'] ); ?></p>
+
+        <div class="pf-project-card__tags">
+            <?php foreach ( $project['tags'] as $tag ) : ?>
+                <span class="ad-badge"><?php echo esc_html( $tag ); ?></span>
+            <?php endforeach; ?>
+        </div>
+
+        <div class="pf-project-card__links">
+            <?php if ( ! empty( $project['url'] ) && '#' !== $project['url'] ) : ?>
+                <a class="pf-card-link" href="<?php echo esc_url( $project['url'] ); ?>" target="_blank" rel="noopener noreferrer">
+                    Live &#8599;
+                </a>
+            <?php endif; ?>
+            <?php if ( ! empty( $project['repo'] ) && '#' !== $project['repo'] ) : ?>
+                <a class="pf-card-link" href="<?php echo esc_url( $project['repo'] ); ?>" target="_blank" rel="noopener noreferrer">
+                    Source
+                </a>
+            <?php endif; ?>
+        </div>
+    </div>
+    <?php
+};
 
 get_header();
 ?>
@@ -241,35 +321,24 @@ get_header();
         </div>
 
         <div class="pf-projects__grid">
-            <?php foreach ( $pf_projects as $i => $project ) : ?>
-                <div class="pf-project-card">
-                    <span class="pf-project-card__num">0<?php echo ( $i + 1 ); ?></span>
-                    <h3 class="pf-project-card__title"><?php echo esc_html( $project['title'] ); ?></h3>
-                    <?php if ( ! empty( $project['period'] ) ) : ?>
-                        <span class="pf-project-card__period"><?php echo esc_html( $project['period'] ); ?></span>
-                    <?php endif; ?>
-                    <p class="pf-project-card__desc"><?php echo esc_html( $project['description'] ); ?></p>
+            <?php foreach ( $pf_projects as $i => $project ) { $pf_render_card( $project, $i ); } ?>
+        </div>
+    </div>
+</section>
 
-                    <div class="pf-project-card__tags">
-                        <?php foreach ( $project['tags'] as $tag ) : ?>
-                            <span class="ad-badge"><?php echo esc_html( $tag ); ?></span>
-                        <?php endforeach; ?>
-                    </div>
+<!-- ═══════════════════════════════════════════════════════════
+     PORTFOLIO
+════════════════════════════════════════════════════════════ -->
+<section class="pf-section" id="portfolio">
+    <div class="ast-container">
+        <div class="pf-section__header">
+            <span class="pf-section__eyebrow">Portfólio</span>
+            <h2 class="pf-section__title">Projetos</h2>
+            <p class="pf-section__subtitle">Produtos que construí como freelancer e projetos pessoais no ar.</p>
+        </div>
 
-                    <div class="pf-project-card__links">
-                        <?php if ( ! empty( $project['url'] ) && '#' !== $project['url'] ) : ?>
-                            <a class="pf-card-link" href="<?php echo esc_url( $project['url'] ); ?>" target="_blank" rel="noopener noreferrer">
-                                Live &#8599;
-                            </a>
-                        <?php endif; ?>
-                        <?php if ( ! empty( $project['repo'] ) && '#' !== $project['repo'] ) : ?>
-                            <a class="pf-card-link" href="<?php echo esc_url( $project['repo'] ); ?>" target="_blank" rel="noopener noreferrer">
-                                Source
-                            </a>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            <?php endforeach; ?>
+        <div class="pf-projects__grid">
+            <?php foreach ( $pf_portfolio as $i => $project ) { $pf_render_card( $project, $i ); } ?>
         </div>
     </div>
 </section>
@@ -285,7 +354,7 @@ $recent_query = new WP_Query( [
 ] );
 if ( $recent_query->have_posts() ) :
 ?>
-<section class="pf-section" id="blog">
+<section class="pf-section pf-section--alt" id="blog">
     <div class="ast-container">
         <div class="pf-section__header">
             <span class="pf-section__eyebrow">Blog</span>

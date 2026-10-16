@@ -341,6 +341,9 @@ function imsanity_resize_from_id( $id = 0 ) {
 		return;
 	}
 	imsanity_debug( "attempting to resize attachment $id" );
+	if ( ! defined( 'IMSANITY_DEFAULT_MAX_WIDTH' ) ) {
+		imsanity_init();
+	}
 
 	$meta = wp_get_attachment_metadata( $id );
 

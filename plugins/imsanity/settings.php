@@ -18,7 +18,7 @@ add_filter( 'plugin_action_links_' . IMSANITY_PLUGIN_FILE_REL, 'imsanity_setting
 add_filter( 'network_admin_plugin_action_links_' . IMSANITY_PLUGIN_FILE_REL, 'imsanity_settings_link' );
 add_action( 'admin_enqueue_scripts', 'imsanity_queue_script' );
 add_action( 'admin_init', 'imsanity_register_settings' );
-add_filter( 'big_image_size_threshold', 'imsanity_adjust_default_threshold', 10, 3 );
+add_filter( 'big_image_size_threshold', '__return_false' );
 
 register_activation_hook( IMSANITY_PLUGIN_FILE_REL, 'imsanity_maybe_created_custom_table' );
 
@@ -173,6 +173,9 @@ function imsanity_multisite_table_schema_version() {
 function imsanity_get_default_multisite_settings() {
 	$data = new stdClass();
 
+	if ( ! defined( 'IMSANITY_DEFAULT_MAX_WIDTH' ) ) {
+		imsanity_init();
+	}
 	$data->imsanity_override_site      = false;
 	$data->imsanity_max_height         = IMSANITY_DEFAULT_MAX_HEIGHT;
 	$data->imsanity_max_width          = IMSANITY_DEFAULT_MAX_WIDTH;
@@ -472,6 +475,9 @@ function imsanity_get_multisite_settings() {
 	$result = null;
 
 	if ( ! $_imsanity_multisite_settings ) {
+		if ( ! defined( 'IMSANITY_DEFAULT_MAX_WIDTH' ) ) {
+			imsanity_init();
+		}
 		if ( function_exists( 'is_multisite' ) && is_multisite() ) {
 			global $wpdb;
 			$result = $wpdb->get_var( "SELECT data FROM $wpdb->imsanity_ms WHERE setting = 'multisite'" );
@@ -494,6 +500,12 @@ function imsanity_get_multisite_settings() {
 		$_imsanity_multisite_settings->imsanity_png_to_jpg    = ! empty( $_imsanity_multisite_settings->imsanity_png_to_jpg ) ? true : false;
 		if ( ! property_exists( $_imsanity_multisite_settings, 'imsanity_delete_originals' ) ) {
 			$_imsanity_multisite_settings->imsanity_delete_originals = false;
+		}
+		if ( ! property_exists( $_imsanity_multisite_settings, 'imsanity_avif_quality' ) ) {
+			$_imsanity_multisite_settings->imsanity_avif_quality = IMSANITY_DEFAULT_AVIF_QUALITY;
+		}
+		if ( ! property_exists( $_imsanity_multisite_settings, 'imsanity_webp_quality' ) ) {
+			$_imsanity_multisite_settings->imsanity_webp_quality = IMSANITY_DEFAULT_WEBP_QUALITY;
 		}
 	}
 	return $_imsanity_multisite_settings;
@@ -556,10 +568,23 @@ function imsanity_set_defaults() {
 	add_option( 'imsanity_avif_quality', $settings->imsanity_avif_quality, '', false );
 	add_option( 'imsanity_webp_quality', $settings->imsanity_webp_quality, '', false );
 	add_option( 'imsanity_delete_originals', $settings->imsanity_delete_originals, '', false );
-	if ( ! get_option( 'imsanity_version' ) ) {
-		global $wpdb;
-		$wpdb->query( "UPDATE $wpdb->options SET autoload='no' WHERE option_name LIKE 'imsanity_%'" );
-	}
+
+	$autoload_options = array(
+		'imsanity_version'            => true,
+		'imsanity_max_width'          => false,
+		'imsanity_max_height'         => false,
+		'imsanity_max_width_library'  => false,
+		'imsanity_max_height_library' => false,
+		'imsanity_max_width_other'    => false,
+		'imsanity_max_height_other'   => false,
+		'imsanity_bmp_to_jpg'         => false,
+		'imsanity_png_to_jpg'         => false,
+		'imsanity_quality'            => false,
+		'imsanity_avif_quality'       => false,
+		'imsanity_webp_quality'       => false,
+		'imsanity_delete_originals'   => false,
+	);
+	wp_set_option_autoload_values( $autoload_options );
 }
 
 /**
@@ -621,6 +646,9 @@ function imsanity_jpg_quality( $quality = null ) {
 	if ( preg_match( '/^(100|[1-9][0-9]?)$/', $quality ) ) {
 		return (int) $quality;
 	} else {
+		if ( ! defined( 'IMSANITY_DEFAULT_QUALITY' ) ) {
+			imsanity_init();
+		}
 		return IMSANITY_DEFAULT_QUALITY;
 	}
 }
@@ -638,6 +666,9 @@ function imsanity_avif_quality( $quality = null ) {
 	if ( preg_match( '/^(100|[1-9][0-9]?)$/', $quality ) ) {
 		return (int) $quality;
 	} else {
+		if ( ! defined( 'IMSANITY_DEFAULT_AVIF_QUALITY' ) ) {
+			imsanity_init();
+		}
 		return IMSANITY_DEFAULT_AVIF_QUALITY;
 	}
 }
@@ -655,6 +686,9 @@ function imsanity_webp_quality( $quality = null ) {
 	if ( preg_match( '/^(100|[1-9][0-9]?)$/', $quality ) ) {
 		return (int) $quality;
 	} else {
+		if ( ! defined( 'IMSANITY_DEFAULT_WEBP_QUALITY' ) ) {
+			imsanity_init();
+		}
 		return IMSANITY_DEFAULT_WEBP_QUALITY;
 	}
 }
@@ -675,6 +709,9 @@ function imsanity_webp_quality( $quality = null ) {
 function imsanity_adjust_default_threshold( $size, $imagesize = array(), $file = '' ) {
 	if ( false !== strpos( $file, 'noresize' ) ) {
 		return false;
+	}
+	if ( ! defined( 'IMSANITY_DEFAULT_MAX_WIDTH' ) ) {
+		imsanity_init();
 	}
 	$max_size = max(
 		imsanity_get_option( 'imsanity_max_width', IMSANITY_DEFAULT_MAX_WIDTH ),
@@ -853,7 +890,7 @@ function imsanity_settings_page_notice() {
 }
 
 /**
- * Check to see if GD is missing, and alert the user.
+ * Check to see if GD is missing and alert the user.
  */
 function imsanity_missing_gd_admin_notice() {
 	if ( imsanity_gd_support() ) {
@@ -863,10 +900,12 @@ function imsanity_missing_gd_admin_notice() {
 }
 
 /**
- * Render the site settings form.  This is processed by
- * WordPress built-in options persistance mechanism
+ * Render the site settings form.
  */
 function imsanity_settings_page_form() {
+	if ( ! defined( 'IMSANITY_DEFAULT_MAX_WIDTH' ) ) {
+		imsanity_init();
+	}
 	?>
 	<form method="post" action="options.php">
 	<?php settings_fields( 'imsanity-settings-group' ); ?>

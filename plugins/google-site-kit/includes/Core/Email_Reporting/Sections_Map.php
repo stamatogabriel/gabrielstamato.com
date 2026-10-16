@@ -12,6 +12,7 @@ namespace Google\Site_Kit\Core\Email_Reporting;
 
 use Google\Site_Kit\Context;
 use Google\Site_Kit\Core\Golinks\Golinks;
+use Google\Site_Kit\Modules\Analytics_4\Email_Reporting\Site_Goals_Section_Builder;
 
 /**
  * Class for mapping email report sections and their layout configuration.
@@ -19,13 +20,6 @@ use Google\Site_Kit\Core\Golinks\Golinks;
  * @since 1.168.0
  */
 class Sections_Map {
-	/**
-	 * Payload flag for rendering conversions section without metric data.
-	 *
-	 * @since 1.175.0
-	 */
-	const CONVERSIONS_NOTICE_ONLY_FLAG = '__show_conversion_notice_only';
-
 	/**
 	 * Plugin context.
 	 *
@@ -116,81 +110,70 @@ class Sections_Map {
 	 * Returns an array describing the layout sections, where each section contains:
 	 * - title: The section heading
 	 * - icon: Icon identifier for the section
-	 * - section_parts: Array of template parts with their data
+	 * - section_parts: Array of template parts with their data.
 	 *
 	 * @since 1.168.0
+	 * @since 1.188.0 Added the online store and lead generation sections at the top.
 	 *
 	 * @return array Array of sections with their configuration.
 	 */
 	public function get_sections() {
 		return array_merge(
-			$this->get_business_growth_section(),
+			$this->get_site_goals_sections(),
 			$this->get_visitors_section(),
 			$this->get_traffic_sources_section(),
 			$this->get_attention_section(),
-			$this->get_growth_drivers_section(),
 			$this->get_growth_drivers_section()
 		);
 	}
 
 	/**
-	 * Gets the business growth section.
+	 * Gets the online store and lead generation sections, in the order the
+	 * dashboard shows their widgets.
 	 *
-	 * @since 1.168.0
+	 * @since 1.188.0
 	 *
 	 * @return array Section configuration array.
 	 */
-	protected function get_business_growth_section() {
-		$section_parts           = array(
-			'total_conversion_events' => array(
-				'data' => $this->payload['total_conversion_events'] ?? array(),
+	protected function get_site_goals_sections() {
+		$cards = array(
+			'how_is_my_online_store_performing'      => array(
+				'payload_key' => Site_Goals_Section_Builder::ONLINE_STORE_SECTION_KEY,
+				'title'       => esc_html__( 'How is my online store performing?', 'google-site-kit' ),
+				'icon'        => 'online-store',
+			),
+			'are_people_reaching_out_to_my_business' => array(
+				'payload_key' => Site_Goals_Section_Builder::LEAD_GENERATION_SECTION_KEY,
+				'title'       => esc_html__( 'Are people reaching out to my business?', 'google-site-kit' ),
+				'icon'        => 'lead-generation',
 			),
 		);
-		$conversion_metric_parts = array();
 
-		foreach ( $this->payload as $key => $data ) {
-			if ( 0 !== strpos( $key, 'conversion_event_' ) ) {
+		$sections = array();
+
+		foreach ( $cards as $section_key => $card ) {
+			$section_parts = $this->filter_section_parts(
+				array(
+					$card['payload_key'] => array(
+						'data' => $this->payload[ $card['payload_key'] ] ?? array(),
+					),
+				)
+			);
+
+			if ( empty( $section_parts ) ) {
 				continue;
 			}
 
-			$conversion_metric_parts[ $key ] = array(
-				'data' => $data,
-			);
-		}
-
-		if ( ! empty( $conversion_metric_parts ) ) {
-			// Rank conversion events by event volume so we can surface only the top performers in the section.
-			uasort(
-				$conversion_metric_parts,
-				function ( $a, $b ) {
-					$value_a = $a['data']['value'] ?? 0;
-					$value_b = $b['data']['value'] ?? 0;
-
-					return floatval( $value_b ) <=> floatval( $value_a );
-				}
-			);
-
-			$conversion_metric_parts = array_slice( $conversion_metric_parts, 0, 2, true );
-			$section_parts           = array_merge( $section_parts, $conversion_metric_parts );
-		}
-
-		$section_parts = $this->filter_section_parts( $section_parts );
-		if (
-			empty( $section_parts )
-			&& empty( $this->payload[ self::CONVERSIONS_NOTICE_ONLY_FLAG ] )
-		) {
-			return array();
-		}
-
-		return array(
-			'is_my_site_helping_my_business_grow' => array(
-				'title'            => esc_html__( 'Is my site helping my business grow?', 'google-site-kit' ),
-				'icon'             => 'conversions',
-				'section_template' => 'section-conversions',
+			$sections[ $section_key ] = array(
+				'title'            => $card['title'],
+				'icon'             => $card['icon'],
+				'section_template' => 'section-site-goals',
 				'dashboard_url'    => $this->get_dashboard_url(),
 				'section_parts'    => $section_parts,
-			),
-		);
+			);
+		}
+
+		return $sections;
 	}
 
 	/**

@@ -2,11 +2,11 @@
 Contributors: nosilver4u
 Donate link: https://ewww.io/donate/
 Tags: compress, convert, webp, resize, lazy load
-Tested up to: 6.9
-Stable tag: 8.4.1
+Tested up to: 7.1
+Stable tag: 8.9.0
 License: GPLv3
 
-Comprehensive image optimization that doesn't require a rocket science degree. Optimize images automatically for Faster Sites and Happy Visitors.
+Comprehensive image optimization with WebP, AVIF, Lazy Load, and more. Optimize images automatically for Faster Sites and Happy Visitors.
 
 == Description ==
 
@@ -21,6 +21,7 @@ Are you frustrated by a slow website? Do over-sized images make you say â€œewwwâ
 * Lossless JPG, PNG, GIF, and SVG image optimization (8% average savings)
 * WebP conversion compatible with all web hosts (60% average savings)
 * Optimize images from [any plugin](https://docs.ewww.io/article/84-plugin-compatibility)
+* Image Detective to help you identify improperly scaled images and better optimize LCP images
 * Resize images at upload or in bulk
 * Lazy Load with auto-scaling for responsive imagesâ€“uses properly-sized placeholders to prevent layout shift (CLS)
 * Sharpen thumbnail images for better quality
@@ -31,7 +32,7 @@ Are you frustrated by a slow website? Do over-sized images make you say â€œewwwâ
 * Preserve GIF animations in thumbnails
 * [Free email support](https://ewww.io/contact-us/)
 
-EWWW Image Optimizer is the only plugin that lets you optimize images using tools on your own web server (jpegtran, optipng, pngout, pngquant, gifsicle, cwebp). This requires the PHP exec() function and a [compatible](https://docs.ewww.io/article/43-supported-web-hosts) Linux, Windows, MacOS, or FreeBSD web server. [If your web server is not compatible, we offer unlimited lossless JPG image optimization and WebP conversion via our Compress API **for free*](https://docs.ewww.io/article/29-what-is-exec-and-why-do-i-need-it).
+EWWW Image Optimizer is the only plugin that lets you optimize images using tools on your own web server (jpegtran, optipng, pngout, pngquant, gifsicle, cwebp). This requires the PHP exec() function and a [compatible](https://docs.ewww.io/article/43-supported-web-hosts) Linux, Windows, MacOS, or FreeBSD web server. [If your web server is not compatible, we offer unlimited lossless JPG image optimization and WebP conversion via our Compress API **for free**](https://docs.ewww.io/article/29-what-is-exec-and-why-do-i-need-it).
 
 **Upgrade to [Premium](https://ewww.io/plans/) for:**
 
@@ -101,6 +102,10 @@ Allows you to run all batch image processes from the command line, instead of th
 
 [WP Offload Media](https://wordpress.org/plugins/amazon-s3-and-cloudfront/) is the officially supported (and recommended) plugin for uploads to Amazon S3, Digital Ocean Spaces, and Google Cloud Storage. [Check our compatibility list for details on other plugins](https://docs.ewww.io/article/84-plugin-compatibility). All pull mode CDNs like Cloudflare, KeyCDN, Bunny CDN and Sucuri work automatically, but you will need to purge the CDN cache after you optimize images with bulk optimization.
 
+= Client-Side Media Processing =
+
+EWWW IO is fully compatible with browser-based thumbnail generation, but if you encounter any issues, you may [disable the in-browser image handling in Ludicrous Mode](https://docs.ewww.io/article/11-advanced-configuration). 
+
 = Translations =
 
 Huge thanks to all our translators, [see the full list](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/contributors)!
@@ -161,16 +166,126 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 == Screenshots ==
 
 1. Plugin settings page.
-2. Additional optimize column added to media listing. You can see your savings, manually optimize individual images, and restore originals (converted only).
-3. Bulk optimization page. You can optimize all your images at once and resume a previous bulk optimization. This is very useful for existing blogs that have lots of images.
+2. More settings.
+3. Additional optimize column added to media listing. You can see your savings, manually optimize individual images, and restore originals (converted only).
+4. Bulk optimization page. You can optimize all your images at once and resume a previous bulk optimization.
 
 == Changelog ==
 
 * Feature requests can be viewed and submitted on our [feedback portal](https://feedback.ewww.io/b/features)
 * If you would like to help translate this plugin in your language, [join the team](https://translate.wordpress.org/projects/wp-plugins/ewww-image-optimizer/)
 
+= 8.9.0 =
+*Release Date - October 13, 2026*
+
+* added: option to disable resizing via maximum dimensions on media uploader and in post editor
+* fixed: regression in Easy IO handling of style attributes causes HTML entities to be double-encoded
+* fixed: PNG metadata not removed when using local optipng
+* fixed: images with fetchpriority="high" do not get skipped by Lazy Load when Picture WebP delivery is enabled
+* fixed: duplicate WebP delivery checks run on settings page
+* fixed: race condition with some LiteSpeed servers causes incorrect WebP test image to display
+* fixed: images too small for thumbnails failed to optimize automatically on upload
+* security: yet more hardening against stored XSS attacks, thanks to WPScan for reporting 
+
+= 8.8.0 =
+*Release Date - September 24, 2026*
+
+* added: quality setting for Premium compression, Premium Plus removed/migrated to quality 77
+* fixed: fatal error when fetching remote images via WP Offload Media due to strict type casting
+* fixed: multisite file modification outside upload directory
+* security: PHP object injection, reported by Karthik Ramakrishnan
+* security: further hardening of stored XSS fix, reported by Charles Vosburgh and Intrudify
+* security: prevent reflected XSS
+
+= 8.7.7 =
+*Release Date - September 1, 2026*
+
+* fixed: LQIP/DCIP inputs not available immediately after Easy IO activation
+* security: ensure all CDN image URLs are properly escaped to prevent XSS
+
+= 8.7.6 =
+*Release Date - August 20, 2026*
+
+* added: option to disable client-side media processing in WP 7.1, mostly for animated GIF images and indexed (palette) PNG images
+* fixed: compatibility with client-side media processing in WP 7.1
+* fixed: Easy IO modifies URLs in REST API endpoints used by media uploader in WP 7.1
+* fixed: WebP conversion via Imagick throws fatal error when source file goes missing
+* fixed: PNG to JPG conversion via API sometimes results in black background for 8-bit images
+* fixed: Auto-scaling sometimes makes images too large (or too small) when CSS width is set to `auto`
+
+= 8.7.5 =
+*Release Date - August 5, 2026*
+
+* improved: use WP file access functions wherever possible
+* fixed: PHP notices in BuddyPress/BuddyBoss compatibility functions
+* removed: PNG to JPG auto-convert for large PNG images
+
+= 8.7.4 =
+*Release Date - July 16, 2026*
+
+* security: prevent authenticated XSS
+
+= 8.7.3 =
+*Release Date - July 9, 2026*
+
+* added: ewww_image_optimizer_cloud_based_media filter for cloud-based storage plugins to integrate with optimization processes
+
+= 8.7.2 =
+*Release Date - June 10, 2026*
+
+* changed: re-test mechanism for background optimization only runs on settings, and improved error reporting for re-testing
+* fixed: cross-site image collisions in remote_push/remote_fetch on multisite with S3 Offload plugin, props @earthlingdavey
+* fixed: bulk JS enqueued twice
+
+= 8.7.1 =
+*Release Date - June 4, 2026*
+
+* fixed: JS/CSS URLs created by WP Rocket are not delivered via Easy IO CDN
+* fixed: docs/help links for Image Detective and Max Image Dimensions
+* fixed: search during bulk optimization does not pause table updates
+
+= 8.7.0 =
+*Release Date - May 21, 2026*
+
+* changed: Linux binaries are now 64-bit for better compatibility with modern servers
+* fixed: Image Detective uses incorrect dimensions for auto-sized srcset images
+* fixed: size detection for images using native lazy load
+* fixed: PHP error adding global Lazy Load exclusion with Image Detective
+* updated: jpegtran to version 10
+* updated: optipng to version 7.9.1
+* updated: gifsicle to version 1.96
+* updated: pngquant to version 3.0.4
+* updated: cwebp to version 1.6.0
+
+= 8.6.0 =
+*Release Date - May 14, 2026*
+
+* added: LCP image detection helper, along with improved UI for Resize Detection which has been renamed to Image Detective
+* added: ability to exclude LCP image from Lazy Load
+* added: filters for plugins that offload media to cloud storage to integrate with S3 detection for JS/Picture WebP and Lazy Load, props @alessandrocarrera
+* changed: Lazy Load and Easy IO scaling thresholds reduced for improved auto-scaling
+* fixed: performance regression when Lazy Load checks parent elements for skip-lazy exceptions
+* fixed: new uploads checked twice for optimization when Image Regenerate & Select Crop plugin is active
+* fixed: incorrect WebP URLs shown in Media Library when naming mode is empty, usually when media is offloaded
+* fixed: some front-end options not autoloaded
+* fixed: AVIF images rewritten in Force WebP mode
+
+= 8.5.0 =
+*Release Date - April 1, 2026*
+
+* changed: foreground/background bulk optimizers merged into common interface on both Settings and Bulk Optimizer pages
+* added: option to choose Background or Foreground mode during bulk optimization
+* added: Choose whether to include Additional Folders like the theme or other configured folders during bulk optimization
+* fixed: some strings in bulk interface not able to be translated properly for RTL locales
+* fixed: NextGEN bulk optimizer missing from menu with NextGEN 4.x
+* fixed: when media is offloaded, background optimization leaves local copies behind in some rare cases
+* fixed: existing images with missing thumbs/sizes do not get properly offloaded by WP Offload Media after bulk optimization
+* fixed: list of pending images for bulk optimization sorted incorrectly
+* deprecated: direct support for GRAND FlaGallery will be removed soon, use Folders to Optimize setting instead
+* deprecated: direct support for NextCellent Gallery will be removed soon, use Folders to Optimize setting instead
+
 = 8.4.1 =
-*Release Date - Feburary 19, 2026*
+*Release Date - February 19, 2026*
 
 * fixed: PHP warnings with offloaded media in the Media Library
 * fixed: WebP naming mode unable to be changed on Cloudflare sites
@@ -228,158 +343,6 @@ That's not a question, but since I made it up, I'll answer it. See this resource
 * fixed: PHP warnings related to HTML parsing
 * fixed: missing ImageMagick information on Site Health screen
 * fixed: PHP warnings when link URLs contain special regex characters
-
-= 8.1.4 =
-*Release Date - May 15, 2025*
-
-* added: customize lossy PDF compression by defining EWWW_IMAGE_OPTIMIZER_PDF_IMAGE_DPI and/or EWWW_IMAGE_OPTIMIZER_PDF_IMAGE_QUALITY
-* fixed: WebP thumbnails have incorrect orientation when created from the original unoptimized image
-
-= 8.1.3 =
-*Release Date - March 26, 2025*
-
-* added: exclude private BuddyBoss media from Easy IO with page:buddyboss exclusion
-* changed: WebP Only mode no longer requires Force Re-optimize for already optimized images
-* fixed: Easy IO rewriting some URLs when full page exclusions are used
-* fixed: WebP rewriters alter PNG URLs when PNG to WebP conversion is unavailable
-* fixed: regression in compatibility with plugins that recreate images via WP_Image_Editor
-* fixed: previous fix to avoid translation notices caused errors with other plugins calling background processes earlier than 'init'
-
-= 8.1.2 =
-*Release Date - March 6, 2025*
-
-* changed: WebP Conversion mode configurable for API users
-* changed: combine metadata queries for faster async scanning
-* changed: Bulk Optimization no longer requires Force Re-optimization to create WebP images for previously optimized images
-* fixed: background processes trigger notice from loading translations too early
-* fixed: WooCommerce thumb regen still runs when WC sizes are disabled
-* fixed: Easy IO fails to refresh CDN domain when site URL has changed
-* fixed: Force and WebP Only options not applied when scanning additional folders in async mode
-* fixed: PDF and SVG images queued in WebP Only mode
-
-= 8.1.1 =
-*Release Date - February 26, 2025*
-
-* changed: added handling of HTTP errors to processes on Tools page
-* changed: added nonce-renewal for long-running processes on Tools page
-* changed: improved output for WebP Cleanup tool and Delete Converted Originals tool
-* fixed: queue table upgrade fails to add 'id' column
-
-= 8.1.0 =
-*Release Date - February 18, 2025*
-
-* added: Preserve Originals option to keep pre-scaled images for WebP and thumbnail generation
-* added: ability for 3rd party plugins to hook into Lazy Load and WebP HTML parsers
-* changed: ImageMagick is default WebP conversion method on supported servers
-* changed: improved performance of custom *_option functions on multisite
-* changed: Max Image Dimensions always override WP big_image threshold
-* changed: local image backups not removed on plugin deactivation
-* fixed: Sharpen Images not applied to new WebP Conversion process
-* fixed: WebP Quality not applied to ImageMagick WebP Conversion for thumbnails
-* fixed: WebP resizing overrides custom crop set by Crop Thumbnails
-* fixed: pre-scaled original cannot be found if attachment metadata is incomplete
-* fixed: PHP error in bulk image scanner
-
-= 8.0.0 =
-*Release Date - December 11, 2024*
-
-* added: WebP Optimization via API, existing customers may enable it on the Local tab in Ludicrous Mode
-* added: improved WebP Conversion quality by using full-size/original source for thumbs
-* added: Above the Fold setting for Lazy Load (previously EIO_LAZY_FOLD override)
-* added: High-DPI option for Easy IO
-* changed: gravatar images excluded from Above the Fold/EIO_LAZY_FOLD counts
-* fixed: Picture WebP ignores images with skip-lazy when it should not
-* fixed: image records not reset after image restore
-* fixed: several PHP warnings from bulk processes
-* fixed: paths for thumbs were broken on Windows
-* fixed: Easy IO adding images to srcset combined with broken WooCommerce gallery thumbnails causes oversized image sizes to be loaded
-* fixed: Easy IO srcset filler using incorrect width for calculations
-* fixed: PHP warning during bulk scan
-
-= 7.9.1 =
-*Release Date - October 31, 2024*
-
-* changed: bulk optimizer links point to async bulk tool, if available
-* fixed: Lazy Load for iframes results in empty src attribute
-* fixed: debug actions on bulk optimizer missing nonces
-* fixed: bulk optimize scanner queries are too long for some hosts
-* fixed: Lazy Load breaks --background CSS variable
-
-= 7.9.0 =
-*Release Date - September 12, 2024*
-
-* added: conversion of BMP images to JPG format
-* changed: allow folders outside of WordPress install to be optimized via Folders to Optimize
-* changed: improve performance of ewwwio_is_file(), props @rmpel
-* changed: improve exceeded credit messages for sub-keys
-* changed: warn when db connection is not using UTF-8
-* changed: ensure all db statements are properly prepared/sanitized
-* fixed: bulk async shows start optimizing instead of resume when queues are paused
-* fixed: bulk async status refresh does not handle errors properly
-* fixed: some strings with i18n had incorrect text domain
-
-= 7.8.0 =
-*Release Date - July 25, 2024*
-
-* added: agency mode available by defining EWWWIO_WHITELABEL or using the ewwwio_whitelabel filter
-* changed: skip lazy load for LCP images based on fetchpriority when auto-scaling is disabled
-* fixed: JS WebP alters img srcset when src is non-WebP but srcset is already WebP
-* fixed: Lazy Load and Easy IO fail to decode URLs with HTML-encoded characters, which causes esc_url to break the URL
-* fixed: Easy IO fails to update CDN domain if site is re-registered while still active
-
-= 7.7.0 =
-*Release Date - June 6, 2024*
-
-* added: improved resizing of paletted PNG images in WP_Image_Editor using pngquant or API
-* added: warning when hiding query strings with Hide My WP
-* changed: apply async loading to lazyload JS using WP core functionality
-* fixed: missing srcset when using JS WebP rewriting
-* fixed: multisite deactivate for Easy IO fails nonce verification
-* fixed: some strings were missing i18n (props @DAnn2012)
-
-= 7.6.0 =
-*Release Date - April 24, 2024*
-
-* added: Easy IO delivery for JS/CSS assets from additional domains
-* added: Lazy Load can use dominant color placeholders via Easy IO
-* added: ability to filter/parse admin-ajax.php requests via eio_filter_admin_ajax_response filter
-* added: Easy IO support for Divi Pixel image masks
-* changed: improved smoothing of LQIP for Lazy Load when using Easy IO
-* changed: after editing an image in WordPress, optimization results for backup sizes will be hidden from Media Library list mode
-* changed: Lazy Load checks for auto-scale exclusions on ancestors of lazyloaded element
-* fixed: async bulk interface does not show Start Optimizing when image queue is already visible
-* fixed: bulk process appears to have completed after clearing queue
-* fixed: storing resize/webp results for new images fails with MySQL strict mode
-* fixed: database records not cleaned after thumbs are removed by Force Regenerate Thumbnails
-* fixed: JPG to PNG conversion on 8-bit PNGs sometimes uses incorrect black background
-* fixed: Help links broken in Firefox's Strict mode
-* fixed: async queue status not properly checked on multi-site
-
-= 7.5.0 =
-*Release Date - March 26, 2024*
-
-* added: Easy IO support for upcoming Slider Revolution 7 rendering engine
-* added: Easy IO updates existing image preload URLs
-* added: Lazy Load automatically excludes preloaded images
-* changed: async process locking uses unique key on disk to avoid duplicate processes
-* fixed: Easy IO skipping Slider Revolution 6 URLs
-* fixed: Lazy Load incorrectly auto-scales fixed group background images
-* fixed: uncaught errors when attempting svgcleaner install on FreeBSD
-* fixed: optimized images list links to WebP thumbnail for all sizes
-* fixed: optimized images list shows wrong thumbnail for non-media library images
-* fixed: quirks with new bulk interface and optimized images list
-* updated: cwebp to version 1.3.2
-* updated: gifsicle to version 1.95
-* updated: optipng to version 0.7.8
-
-= 7.4.0 =
-*Release Date - March 6, 2024*
-
-* added: async bulk optimizer on settings page
-* added: store WebP results/errors for display in Media Library, and in optimization table/results
-* added: ability to view pending/queued images, remove images from queue, and sort queue by original image size
-* fixed: restoring images from optimization table
-* fixed: attempting to install x64 binaries on arm64 servers
 
 = Earlier versions =
 Please refer to the separate changelog.txt file.

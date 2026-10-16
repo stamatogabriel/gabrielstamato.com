@@ -109,6 +109,19 @@ As principais pastas do `wp-content` estão montadas localmente:
 
 Isso permite editar tema, plugins e arquivos persistidos diretamente no repositório, com reflexo imediato no container.
 
+## Deploy Do Tema Em Produção
+
+Só o tema vai para produção. Banco, plugins e uploads ficam como estão lá.
+
+```bash
+rm -f dist/astradev.zip && python3 -m zipfile -c dist/astradev.zip themes/astradev
+```
+
+1. Suba a `Version:` em `themes/astradev/style.css`.
+2. Gere o zip com o comando acima.
+3. Em produção: **Aparência → Temas → Adicionar novo tema → Enviar tema**, escolha `dist/astradev.zip` e clique em **Substituir o atual pelo enviado**.
+4. Limpe o cache do WP Super Cache.
+
 ## Destaques Técnicos Do Tema
 
 O `astradev` foi pensado para funcionar como um child theme de verdade, não só como uma camada de CSS por cima do Astra.

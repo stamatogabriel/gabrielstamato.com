@@ -76,6 +76,10 @@
 			overflow: hidden;
 		}
 
+		.link {
+			color: #108080;
+		}
+
 		/* Dark mode styles for email clients that support prefers-color-scheme */
 		@media (prefers-color-scheme: dark) {
 			body,
@@ -108,6 +112,17 @@
 				box-shadow: inset 0 0 0 9999px #E3D1FF !important;
 			}
 
+			.googlesitekit-email-report-notice .googlesitekit-email-report-notice-text,
+			.googlesitekit-email-report-notice .googlesitekit-email-report-notice-text a {
+				color: #462083 !important;
+			}
+
+			.googlesitekit-email-report-notice .googlesitekit-email-report-notice-cta {
+				background-color: #462083 !important;
+				box-shadow: inset 0 0 0 9999px #462083 !important;
+				color: #FFFFFF !important;
+			}
+
 			.text-primary {
 				color: #EBEEF0 !important;
 			}
@@ -117,7 +132,7 @@
 			}
 
 			.link {
-				color: #93C9A8 !important;
+				color: #4BBBBB !important;
 			}
 
 			.button {
@@ -176,6 +191,17 @@
 			box-shadow: inset 0 0 0 9999px #E3D1FF !important;
 		}
 
+		[data-ogsc] .googlesitekit-email-report-notice .googlesitekit-email-report-notice-text,
+		[data-ogsc] .googlesitekit-email-report-notice .googlesitekit-email-report-notice-text a {
+			color: #462083 !important;
+		}
+
+		[data-ogsc] .googlesitekit-email-report-notice .googlesitekit-email-report-notice-cta {
+			background-color: #462083 !important;
+			box-shadow: inset 0 0 0 9999px #462083 !important;
+			color: #FFFFFF !important;
+		}
+
 		[data-ogsc] .text-primary {
 			color: #EBEEF0 !important;
 		}
@@ -185,7 +211,7 @@
 		}
 
 		[data-ogsc] .link {
-			color: #93C9A8 !important;
+			color: #4BBBBB !important;
 		}
 
 		[data-ogsc] .button {

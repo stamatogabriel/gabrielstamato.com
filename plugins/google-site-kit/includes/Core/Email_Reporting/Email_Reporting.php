@@ -6,17 +6,16 @@
  * @copyright 2025 Google LLC
  * @license   https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link      https://sitekit.withgoogle.com
+ *
+ * phpcs:disable PHPCS.Commenting.RequireDocTagDescription -- Pre-existing violations; tracked for follow-up cleanup.
  */
 
 namespace Google\Site_Kit\Core\Email_Reporting;
 
 use Google\Site_Kit\Context;
 use Google\Site_Kit\Core\Authentication\Authentication;
-use Google\Site_Kit\Core\Conversion_Tracking\Conversion_Tracking;
-use Google\Site_Kit\Core\Conversion_Tracking\Conversion_Tracking_Settings;
 use Google\Site_Kit\Core\Email\Email;
 use Google\Site_Kit\Core\Email_Reporting\Notices\Analytics_Setup_Email_Notice;
-use Google\Site_Kit\Core\Email_Reporting\Notices\Enable_Conversion_Events_Email_Notice;
 use Google\Site_Kit\Core\Golinks\Golinks;
 use Google\Site_Kit\Core\Golinks\Settings_Golink_Handler;
 use Google\Site_Kit\Core\Modules\Modules;
@@ -221,31 +220,30 @@ class Email_Reporting implements Provides_Feature_Metrics {
 		?Options $options = null,
 		?User_Options $user_options = null
 	) {
-		$this->context                = $context;
-		$this->modules                = $modules;
-		$this->data_requests          = $data_requests;
-		$this->golinks                = $golinks;
-		$this->authentication         = $authentication;
-		$this->options                = $options ?: new Options( $this->context );
-		$this->user_options           = $user_options ?: new User_Options( $this->context );
-		$this->settings               = new Email_Reporting_Settings( $this->options );
-		$this->user_settings          = new User_Email_Reporting_Settings( $this->user_options );
-		$conversion_tracking_settings = new Conversion_Tracking_Settings( $this->options );
-		$conversion_tracking          = new Conversion_Tracking( $this->context, $this->options );
-		$this->email_notices          = new Email_Notices(
+		$this->context        = $context;
+		$this->modules        = $modules;
+		$this->data_requests  = $data_requests;
+		$this->golinks        = $golinks;
+		$this->authentication = $authentication;
+		$this->options        = $options ?: new Options( $this->context );
+		$this->user_options   = $user_options ?: new User_Options( $this->context );
+		$this->settings       = new Email_Reporting_Settings( $this->options );
+		$this->user_settings  = new User_Email_Reporting_Settings( $this->user_options );
+		$frequency_planner    = new Frequency_Planner();
+		$this->scheduler      = new Email_Reporting_Scheduler( $frequency_planner );
+		$this->email_notices  = new Email_Notices(
 			$this->context,
 			$this->golinks,
 			array(
 				new Analytics_Setup_Email_Notice( $this->context, $this->modules, $this->golinks ),
-				new Enable_Conversion_Events_Email_Notice( $this->context, $this->modules, $this->golinks, $conversion_tracking_settings, $conversion_tracking ),
 			)
 		);
 
-		$frequency_planner            = new Frequency_Planner();
 		$this->subscribed_users_query = new Subscribed_Users_Query( $this->user_settings, $this->modules );
 		$eligible_subscribers_query   = new Eligible_Subscribers_Query( $this->modules, $this->user_options );
 		$max_execution_limiter        = new Max_Execution_Limiter( (int) ini_get( 'max_execution_time' ) );
 		$this->email_log_batch_query  = new Email_Log_Batch_Query();
+		$health_check                 = new Cron_Health_Check( $this->email_log_batch_query, $this->scheduler );
 		$email_sender                 = new Email();
 		$section_builder              = new Email_Report_Section_Builder( $this->context );
 		$template_formatter           = new Email_Template_Formatter( $this->context, $section_builder, $this->golinks, $this->email_notices );
@@ -259,10 +257,11 @@ class Email_Reporting implements Provides_Feature_Metrics {
 			$this->user_settings,
 			$eligible_subscribers_query,
 			$email_sender,
-			$this->golinks
+			$this->golinks,
+			$health_check,
+			$this->subscribed_users_query
 		);
 		$this->email_log         = new Email_Log();
-		$this->scheduler         = new Email_Reporting_Scheduler( $frequency_planner );
 		$this->initiator_task    = new Initiator_Task( $this->scheduler, $this->subscribed_users_query );
 		$notifier                = new Batch_Error_Notifier( $this->email_log_batch_query, $email_sender, $this->context, $this->golinks );
 		$this->worker_task       = new Worker_Task(
@@ -271,7 +270,8 @@ class Email_Reporting implements Provides_Feature_Metrics {
 			$this->scheduler,
 			$log_processor,
 			$this->data_requests,
-			$notifier
+			$notifier,
+			$health_check
 		);
 		$this->fallback_task     = new Fallback_Task( $this->email_log_batch_query, $this->scheduler, $this->worker_task, $notifier );
 		$this->monitor_task      = new Monitor_Task( $this->scheduler, $this->settings );
@@ -303,7 +303,7 @@ class Email_Reporting implements Provides_Feature_Metrics {
 			$this->scheduler->schedule_monitor();
 			$this->scheduler->schedule_cleanup();
 
-			add_action( Email_Reporting_Scheduler::ACTION_INITIATOR, array( $this->initiator_task, 'handle_callback_action' ), 10, 1 );
+			add_action( Email_Reporting_Scheduler::ACTION_INITIATOR, array( $this->initiator_task, 'handle_callback_action' ), 10, 2 );
 			add_action( Email_Reporting_Scheduler::ACTION_MONITOR, array( $this->monitor_task, 'handle_monitor_action' ) );
 			add_action( Email_Reporting_Scheduler::ACTION_WORKER, array( $this->worker_task, 'handle_callback_action' ), 10, 3 );
 			add_action( Email_Reporting_Scheduler::ACTION_FALLBACK, array( $this->fallback_task, 'handle_fallback_action' ), 10, 3 );
@@ -336,6 +336,7 @@ class Email_Reporting implements Provides_Feature_Metrics {
 	 * Gets feature metrics for email reporting.
 	 *
 	 * @since 1.173.0
+	 * @since 1.179.0 Added email_reporting_enabled metric.
 	 *
 	 * @return array
 	 */
@@ -344,6 +345,7 @@ class Email_Reporting implements Provides_Feature_Metrics {
 		$batch_counts     = $this->email_log_batch_query->get_batch_counts( $latest_batch_ids );
 
 		return array(
+			'email_reporting_enabled'           => $this->settings->is_email_reporting_enabled(),
 			'email_reporting_total_sent'        => $this->email_log_batch_query->get_total_count_by_status( Email_Log::STATUS_SENT ),
 			'email_reporting_total_failed'      => $this->email_log_batch_query->get_total_count_by_status( Email_Log::STATUS_FAILED ),
 			'email_reporting_last_batch_sent'   => $batch_counts['sent'],

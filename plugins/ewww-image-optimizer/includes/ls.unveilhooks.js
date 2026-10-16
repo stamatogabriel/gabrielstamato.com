@@ -157,8 +157,68 @@ For background images, use data-bg attribute:
 
 	}
 
+	function resolveURL(src) {
+		try {
+			var parsedSrc = new URL(src, document.baseURI);
+		} catch (e) {
+			console.log(e);
+			return null;
+		}
+		var path = parsedSrc.pathname, prev;
+		for (var i = 0; i < 5; i++) {
+			prev = path;
+			try {
+				path = decodeURIComponent(path);
+			} catch (e) {
+				return null;
+			}
+			if (path === prev) {
+				break;
+			}
+		}
+		if (path !== prev) {
+			return null;
+		}
+		path = new URL(path.replace(/[?#]/g, ''), parsedSrc.origin).pathname;
+		return { host: parsedSrc.host, path: path };
+	}
+
 	function addStyleScript(src, style, cb){
 		if(uniqueUrls[src]){
+			return;
+		}
+		if(typeof eio_lazy_vars.safe_domains !== 'object' || ! Array.isArray(eio_lazy_vars.safe_domains)) {
+			return;
+		}
+		if(typeof eio_lazy_vars.safe_paths !== 'object' || ! Array.isArray(eio_lazy_vars.safe_paths)) {
+			return;
+		}
+		const safeDomains = eio_lazy_vars.safe_domains;
+		const safePaths = eio_lazy_vars.safe_paths;
+
+		var validSrc  = false;
+		var parsedSrc = resolveURL(src);
+		if (null===parsedSrc) {
+			return;
+		}
+		var i = 0;
+		var k = 0;
+		for(; i < safeDomains.length; i++){
+			console.log('checking if ' + src + ' matches ' + safeDomains[i]);
+			if(parsedSrc.host === safeDomains[i]){
+				k = 0;
+				for(; k <safePaths.length; k++){
+					console.log('checking if ' + src + ' matches ' + safePaths[k]);
+					if (parsedSrc.path.startsWith(safePaths[k])) {
+						console.log('src is valid');
+						validSrc = true;
+						break;
+					}
+				}
+				break;
+			}
+		}
+		if(!validSrc){
 			return;
 		}
 		var elem = document.createElement(style ? 'link' : 'script');

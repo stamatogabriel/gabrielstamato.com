@@ -14,8 +14,8 @@ Plugin URI: https://wordpress.org/plugins/imsanity/
 Description: Imsanity stops insanely huge image uploads
 Author: Exactly WWW
 Domain Path: /languages
-Version: 2.9.0
-Requires at least: 6.6
+Version: 2.9.4
+Requires at least: 6.8
 Requires PHP: 7.4
 Author URI: https://ewww.io/about/
 License: GPLv3
@@ -25,16 +25,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'IMSANITY_VERSION', '2.9.0' );
+define( 'IMSANITY_VERSION', '2.9.4' );
 define( 'IMSANITY_SCHEMA_VERSION', '1.1' );
-
-define( 'IMSANITY_DEFAULT_MAX_WIDTH', 1920 );
-define( 'IMSANITY_DEFAULT_MAX_HEIGHT', 1920 );
-define( 'IMSANITY_DEFAULT_BMP_TO_JPG', true );
-define( 'IMSANITY_DEFAULT_PNG_TO_JPG', false );
-define( 'IMSANITY_DEFAULT_QUALITY', 82 );
-define( 'IMSANITY_DEFAULT_AVIF_QUALITY', 86 );
-define( 'IMSANITY_DEFAULT_WEBP_QUALITY', 86 );
 
 define( 'IMSANITY_SOURCE_POST', 1 );
 define( 'IMSANITY_SOURCE_LIBRARY', 2 );
@@ -62,9 +54,36 @@ define( 'IMSANITY_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'IMSANITY_PLUGIN_FILE_REL', plugin_basename( __FILE__ ) );
 
 /**
- * Load translations for Imsanity.
+ * Initialize the plugin, setup constants.
  */
 function imsanity_init() {
+	if ( ! defined( 'IMSANITY_DEFAULT_MAX_WIDTH' ) ) {
+		define( 'IMSANITY_DEFAULT_MAX_WIDTH', (int) apply_filters( 'imsanity_default_max_width', 1920 ) );
+	}
+	if ( ! defined( 'IMSANITY_DEFAULT_MAX_HEIGHT' ) ) {
+		define( 'IMSANITY_DEFAULT_MAX_HEIGHT', (int) apply_filters( 'imsanity_default_max_height', 1920 ) );
+	}
+	if ( ! defined( 'IMSANITY_DEFAULT_BMP_TO_JPG' ) ) {
+		define( 'IMSANITY_DEFAULT_BMP_TO_JPG', (bool) apply_filters( 'imsanity_default_bmp_to_jpg', true ) );
+	}
+	if ( ! defined( 'IMSANITY_DEFAULT_PNG_TO_JPG' ) ) {
+		define( 'IMSANITY_DEFAULT_PNG_TO_JPG', (bool) apply_filters( 'imsanity_default_png_to_jpg', false ) );
+	}
+	if ( ! defined( 'IMSANITY_DEFAULT_QUALITY' ) ) {
+		define( 'IMSANITY_DEFAULT_QUALITY', (int) apply_filters( 'imsanity_default_quality', 82 ) );
+	}
+	if ( ! defined( 'IMSANITY_DEFAULT_AVIF_QUALITY' ) ) {
+		define( 'IMSANITY_DEFAULT_AVIF_QUALITY', (int) apply_filters( 'imsanity_default_avif_quality', 86 ) );
+	}
+	if ( ! defined( 'IMSANITY_DEFAULT_WEBP_QUALITY' ) ) {
+		define( 'IMSANITY_DEFAULT_WEBP_QUALITY', (int) apply_filters( 'imsanity_default_webp_quality', 86 ) );
+	}
+}
+
+/**
+ * Load translations for Imsanity.
+ */
+function imsanity_load_textdomain() {
 	load_plugin_textdomain( 'imsanity', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
 }
 
@@ -137,6 +156,9 @@ function imsanity_get_source() {
  * @param int $source One of IMSANITY_SOURCE_POST | IMSANITY_SOURCE_LIBRARY | IMSANITY_SOURCE_OTHER.
  */
 function imsanity_get_max_width_height( $source ) {
+	if ( ! defined( 'IMSANITY_DEFAULT_MAX_WIDTH' ) ) {
+		imsanity_init();
+	}
 	$w = (int) imsanity_get_option( 'imsanity_max_width', IMSANITY_DEFAULT_MAX_WIDTH );
 	$h = (int) imsanity_get_option( 'imsanity_max_height', IMSANITY_DEFAULT_MAX_HEIGHT );
 
@@ -161,11 +183,16 @@ function imsanity_get_max_width_height( $source ) {
  * Handler after a file has been uploaded.  If the file is an image, check the size
  * to see if it is too big and, if so, resize and overwrite the original.
  *
- * @param Array $params The parameters submitted with the upload.
+ * @param array $params The parameters submitted with the upload.
  */
 function imsanity_handle_upload( $params ) {
 	imsanity_debug( __FUNCTION__ );
 
+	$request_uri = add_query_arg( '', '' );
+	if ( wp_is_rest_endpoint() && preg_match( '#wp/v2/media/\d+/sideload#', $request_uri ) && isset( $_REQUEST['image_size'] ) && ! empty( $_REQUEST['image_size'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+		imsanity_debug( 'sub-sizes sideloading, can\'t touch this!' );
+		return $params;
+	}
 	if ( empty( $params['file'] ) || empty( $params['type'] ) ) {
 		imsanity_debug( 'missing file or type parameter, skipping' );
 		return $params;
@@ -175,6 +202,11 @@ function imsanity_handle_upload( $params ) {
 	if ( strpos( $params['file'], 'noresize' ) !== false ) {
 		imsanity_debug( "skipping {$params['file']}" );
 		return $params;
+	}
+
+	// Make sure default constants are defined, just in case this triggers before the init action.
+	if ( ! defined( 'IMSANITY_DEFAULT_MAX_WIDTH' ) ) {
+		imsanity_init();
 	}
 
 	if ( apply_filters( 'imsanity_skip_image', false, $params['file'] ) ) {
@@ -333,6 +365,10 @@ function imsanity_handle_upload( $params ) {
 function imsanity_convert_to_jpg( $type, $params ) {
 	imsanity_debug( __FUNCTION__ );
 
+	if ( ! defined( 'IMSANITY_DEFAULT_QUALITY' ) ) {
+		imsanity_init();
+	}
+
 	if ( apply_filters( 'imsanity_disable_convert', false, $type, $params ) ) {
 		imsanity_debug( "skipping conversion for {$params['file']}" );
 		return $params;
@@ -393,10 +429,12 @@ function imsanity_convert_to_jpg( $type, $params ) {
 	return $params;
 }
 
+// Run plugin init actions.
+add_action( 'init', 'imsanity_init' );
 // Add filter to hook into uploads.
 add_filter( 'wp_handle_upload', 'imsanity_handle_upload' );
-// Run necessary actions on init (loading translations mostly).
-add_action( 'plugins_loaded', 'imsanity_init' );
+// Load legacy language files on plugins_loaded.
+add_action( 'plugins_loaded', 'imsanity_load_textdomain' );
 
 // Adds a column to the media library list view to display optimization results.
 add_filter( 'manage_media_columns', 'imsanity_media_columns' );

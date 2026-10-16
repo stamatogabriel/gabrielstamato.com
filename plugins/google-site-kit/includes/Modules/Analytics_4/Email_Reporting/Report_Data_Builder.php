@@ -52,19 +52,30 @@ class Report_Data_Builder {
 	protected $audience_display_map;
 
 	/**
+	 * Site Goals section builder instance.
+	 *
+	 * @since 1.187.0
+	 * @var Site_Goals_Section_Builder
+	 */
+	protected $site_goals_builder;
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 1.170.0
+	 * @since 1.187.0 Added the optional Site Goals section builder.
 	 *
 	 * @param Email_Report_Payload_Processor|null $report_processor     Optional. Report processor instance.
 	 * @param Report_Data_Processor|null          $data_processor       Optional. Analytics data processor.
 	 * @param array                               $audience_display_map Optional. Audience resource => display name map.
 	 * @param Context|null                        $context              Optional. Plugin context for audience lookup.
+	 * @param Site_Goals_Section_Builder|null     $site_goals_builder   Optional. Site Goals section builder instance.
 	 */
-	public function __construct( ?Email_Report_Payload_Processor $report_processor = null, ?Report_Data_Processor $data_processor = null, array $audience_display_map = array(), ?Context $context = null ) {
+	public function __construct( ?Email_Report_Payload_Processor $report_processor = null, ?Report_Data_Processor $data_processor = null, array $audience_display_map = array(), ?Context $context = null, ?Site_Goals_Section_Builder $site_goals_builder = null ) {
 		$this->report_processor     = $report_processor ?? new Email_Report_Payload_Processor();
 		$this->data_processor       = $data_processor ?? new Report_Data_Processor();
 		$this->audience_display_map = $audience_display_map;
+		$this->site_goals_builder   = $site_goals_builder ?? new Site_Goals_Section_Builder( $this->report_processor, $this->data_processor );
 
 		if ( empty( $this->audience_display_map ) && $context instanceof Context ) {
 			$audience_config            = new Audience_Config(
@@ -79,14 +90,22 @@ class Report_Data_Builder {
 	 * Builds section payloads from Analytics module data.
 	 *
 	 * @since 1.170.0
+	 * @since 1.177.0 Removed conversion event handling.
+	 * @since 1.187.0 Added the Site Goals sections, each built from more than one report.
 	 *
 	 * @param array $module_payload Module payload keyed by section slug.
 	 * @return array Section payloads.
 	 */
 	public function build_sections_from_module_payload( $module_payload ) {
-		$sections = array();
+		$sections = $this->site_goals_builder->build_sections( $module_payload );
 
 		foreach ( $module_payload as $section_key => $section_data ) {
+			// A Site Goals section reads more than one report, so
+			// `Site_Goals_Section_Builder` builds it above this loop.
+			if ( in_array( $section_key, Report_Request_Assembler::SITE_GOALS_REQUEST_KEYS, true ) ) {
+				continue;
+			}
+
 			list( $reports ) = $this->normalize_section_input( $section_data );
 
 			foreach ( $reports as $report ) {
@@ -170,6 +189,7 @@ class Report_Data_Builder {
 	 * Builds analytics section payload, extracting dimensions, metrics, and trends.
 	 *
 	 * @since 1.170.0
+	 * @since 1.177.0 Removed conversion event label overrides.
 	 *
 	 * @param array  $processed_report Processed report data.
 	 * @param string $section_key      Section key.
@@ -189,15 +209,6 @@ class Report_Data_Builder {
 		list( $values, $trends ) = $this->data_processor->apply_dimension_aggregates( $values, $trends, $dimension_values, $dimension_metrics, $metric_names );
 
 		list( $dimension_values, $labels ) = $this->maybe_format_audience_dimensions( $dimensions, $dimension_values, $labels );
-
-		if ( 0 === strpos( $section_key, 'conversion_event_' ) ) {
-			$event_name = substr( $section_key, strlen( 'conversion_event_' ) );
-
-			if ( '' !== $event_name ) {
-				$labels       = array( $event_name );
-				$metric_names = array( $event_name );
-			}
-		}
 
 		return array(
 			'section_key'      => $section_key,

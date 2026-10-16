@@ -12,7 +12,7 @@ namespace Google\Site_Kit\Core\Email_Reporting;
 
 use Google\Site_Kit\Context;
 use Google\Site_Kit\Core\Golinks\Golinks;
-use Google\Site_Kit\Core\Email_Reporting\Notices\Enable_Conversion_Events_Email_Notice;
+use Google\Site_Kit\Core\Util\BC_Functions;
 use Google\Site_Kit\Core\User\Email_Reporting_Settings;
 use WP_Error;
 use WP_Post;
@@ -86,15 +86,14 @@ class Email_Template_Formatter {
 	 * Builds sections from raw payload grouped by module.
 	 *
 	 * @since 1.170.0
+	 * @since 1.186.0 Removed $user parameter, locale switching is now handled by the Email_Log_Processor.
 	 *
 	 * @param array   $raw_payload Raw payload.
 	 * @param WP_Post $email_log   Email log post.
-	 * @param WP_User $user        User receiving the report.
 	 * @return array|WP_Error Sections array or WP_Error.
 	 */
-	public function build_sections( $raw_payload, WP_Post $email_log, WP_User $user ) {
-		$sections    = array();
-		$user_locale = get_user_locale( $user );
+	public function build_sections( $raw_payload, WP_Post $email_log ) {
+		$sections = array();
 
 		if ( ! is_array( $raw_payload ) ) {
 			return $sections;
@@ -109,7 +108,6 @@ class Email_Template_Formatter {
 				$module_sections = $this->section_builder->build_sections(
 					$module_slug,
 					array( $module_payload ),
-					$user_locale,
 					$email_log
 				);
 			} catch ( \Throwable $exception ) {
@@ -149,12 +147,6 @@ class Email_Template_Formatter {
 			);
 		}
 
-		$section_notices = $this->prepare_section_notices( $user );
-
-		if ( ! empty( $section_notices[ Enable_Conversion_Events_Email_Notice::SECTION_KEY ] ) ) {
-			$sections_payload[ Sections_Map::CONVERSIONS_NOTICE_ONLY_FLAG ] = true;
-		}
-
 		$sections_map = new Sections_Map( $this->context, $sections_payload, $this->golinks );
 		if ( empty( $sections_map->get_sections() ) ) {
 			return new WP_Error(
@@ -168,8 +160,7 @@ class Email_Template_Formatter {
 			'template_data'    => $this->prepare_template_data(
 				$frequency,
 				$date_range,
-				$user,
-				$section_notices
+				$user
 			),
 		);
 	}
@@ -178,6 +169,7 @@ class Email_Template_Formatter {
 	 * Prepares section payload for the template renderer.
 	 *
 	 * @since 1.170.0
+	 * @since 1.187.0 Added the `groups` and the `prompt` to the section payload.
 	 *
 	 * @param array $sections   Section instances.
 	 * @param array $date_range Date range used for the report.
@@ -188,10 +180,6 @@ class Email_Template_Formatter {
 		$change_context = $this->get_change_context_label( $date_range );
 
 		foreach ( $sections as $section ) {
-			if ( ! $section instanceof Email_Report_Data_Section_Part ) {
-				continue;
-			}
-
 			$values           = $section->get_values();
 			$labels           = $section->get_labels();
 			$trends           = $section->get_trends();
@@ -220,6 +208,8 @@ class Email_Template_Formatter {
 				'dimension'        => isset( $dimensions[0] ) ? $dimensions[0] : '',
 				'dimension_value'  => $first_dimension_value,
 				'dimension_values' => $dimension_values ?? array(),
+				'groups'           => $section->get_groups(),
+				'prompt'           => $section->get_prompt(),
 				'change'           => $change,
 				'changes'          => $changes,
 				'change_context'   => $change_context,
@@ -232,10 +222,21 @@ class Email_Template_Formatter {
 	/**
 	 * Parses a change value into float.
 	 *
+	 * Handles both the canonical period-decimal percentage strings the
+	 * section builder emits (e.g. `6.52%`) and locale-formatted ones that
+	 * may still arrive from previously stored section data under a
+	 * decimal-comma locale (e.g. `6,52%` for `es_CO`/`de_DE`). The decimal
+	 * separator is identified structurally — the last `.` or `,` followed
+	 * by exactly two digits, since trend percentages are always formatted
+	 * with two decimal places — rather than assumed from the active
+	 * locale, which would misread an already-canonical value under a
+	 * decimal-comma locale.
+	 *
 	 * @since 1.170.0
+	 * @since 1.186.0 Hardened decimal-separator detection to support decimal-comma locales.
 	 *
 	 * @param mixed $change Change value.
-	 * @return float|null Parsed change.
+	 * @return float|null Parsed change, or null when missing or unparseable.
 	 */
 	private function parse_change_value( $change ) {
 		if ( null === $change || '' === $change ) {
@@ -243,7 +244,12 @@ class Email_Template_Formatter {
 		}
 
 		if ( is_string( $change ) ) {
-			$change = str_replace( '%', '', $change );
+			$change = trim( str_replace( '%', '', $change ) );
+
+			if ( preg_match( '/^([+-]?[\d.,]*)[.,](\d{2})$/', $change, $matches ) ) {
+				$integer_part = str_replace( array( '.', ',' ), '', $matches[1] );
+				$change       = $integer_part . '.' . $matches[2];
+			}
 		}
 
 		if ( ! is_numeric( $change ) ) {
@@ -339,7 +345,6 @@ class Email_Template_Formatter {
 		$site_domain        = $this->get_site_domain();
 		$dashboard_url      = $this->golinks->get_url( 'dashboard' );
 		$email_settings_url = $this->golinks->get_url( 'manage-subscription-email-reporting' );
-		$help_center_url    = add_query_arg( 'doc', 'get-support', 'https://sitekit.withgoogle.com/support/' );
 
 		$data = array(
 			'subject'                => $subject,
@@ -356,20 +361,6 @@ class Email_Template_Formatter {
 			'footer'                 => array(
 				'copy'            => $email_data['footer_copy'] ?? '',
 				'unsubscribe_url' => $email_settings_url,
-				'links'           => array(
-					array(
-						'label' => __( 'Manage subscription', 'google-site-kit' ),
-						'url'   => $email_settings_url,
-					),
-					array(
-						'label' => __( 'Privacy Policy', 'google-site-kit' ),
-						'url'   => 'https://policies.google.com/privacy',
-					),
-					array(
-						'label' => __( 'Help center', 'google-site-kit' ),
-						'url'   => $help_center_url,
-					),
-				),
 			),
 		);
 
@@ -380,6 +371,7 @@ class Email_Template_Formatter {
 	 * Builds template data for the subscription confirmation email.
 	 *
 	 * @since 1.174.0
+	 * @since 1.186.0 Wrapped the unsubscribe link within the localized footer copy.
 	 *
 	 * @param string $frequency Frequency slug.
 	 * @return array Template data.
@@ -390,7 +382,6 @@ class Email_Template_Formatter {
 		$first_report_date  = $this->get_first_report_date_label( $frequency );
 		$dashboard_url      = $this->golinks->get_url( 'dashboard' );
 		$email_settings_url = $this->golinks->get_url( 'manage-subscription-email-reporting' );
-		$help_center_url    = add_query_arg( 'doc', 'get-support', 'https://sitekit.withgoogle.com/support/' );
 
 		return array(
 			'subject'                => sprintf(
@@ -411,29 +402,22 @@ class Email_Template_Formatter {
 					$first_report_date,
 				)
 			),
-			'learn_more_url'         => 'https://sitekit.withgoogle.com/documentation/email-reports/',
+			'learn_more_url'         => 'https://sitekit.withgoogle.com/support/?doc=email-reporting',
 			'primary_call_to_action' => array(
 				'label' => __( 'View dashboard', 'google-site-kit' ),
 				'url'   => $dashboard_url,
 			),
 			'footer'                 => array(
-				'copy'            => __( 'You received this email because you signed up to receive email reports from Site Kit. If you do not want to receive these emails in the future you can unsubscribe', 'google-site-kit' ),
-				'unsubscribe_url' => $email_settings_url,
-				'links'           => array(
-					array(
-						'label' => __( 'Manage subscription', 'google-site-kit' ),
-						'url'   => $email_settings_url,
-					),
-					array(
-						'label' => __( 'Privacy Policy', 'google-site-kit' ),
-						'url'   => 'https://policies.google.com/privacy',
-					),
-					array(
-						'label' => __( 'Help center', 'google-site-kit' ),
-						'url'   => $help_center_url,
-					),
+				'copy'            => sprintf(
+					/* translators: 1: Unsubscribe link URL, 2: Unsubscribe link inline style CSS. */
+					__( 'You received this email because you signed up to receive email reports from Site Kit. If you do not want to receive these emails in the future you can <a class="link" href="%1$s" style="%2$s">unsubscribe</a>.', 'google-site-kit' ),
+					$email_settings_url,
+					'text-decoration:none;'
 				),
+				'unsubscribe_url' => $email_settings_url,
 			),
+			'graphic'                => Content_Map::get_graphic_config( 'subscription-confirmation' ),
+			'footer_type'            => 'standard',
 		);
 	}
 
@@ -441,17 +425,16 @@ class Email_Template_Formatter {
 	 * Builds template data for rendering.
 	 *
 	 * @since 1.170.0
+	 * @since 1.186.0 Wrapped the unsubscribe link within the localized footer copy.
 	 *
-	 * @param string  $frequency       Frequency slug.
-	 * @param array   $date_range      Date range.
-	 * @param WP_User $user            User receiving the report.
-	 * @param array   $section_notices Section notices keyed by section key.
+	 * @param string  $frequency  Frequency slug.
+	 * @param array   $date_range Date range.
+	 * @param WP_User $user       User receiving the report.
 	 * @return array Template data.
 	 */
-	private function prepare_template_data( $frequency, $date_range, WP_User $user, array $section_notices ) {
+	private function prepare_template_data( $frequency, $date_range, WP_User $user ) {
 		$dashboard_url      = $this->golinks->get_url( 'dashboard' );
 		$email_settings_url = $this->golinks->get_url( 'manage-subscription-email-reporting' );
-		$help_center_url    = add_query_arg( 'doc', 'get-support', 'https://sitekit.withgoogle.com/support/' );
 
 		return array(
 			'subject'                => $this->build_subject( $frequency ),
@@ -465,57 +448,20 @@ class Email_Template_Formatter {
 				'context' => $this->get_change_context_label( $date_range ),
 			),
 			'header_notices'         => $this->email_notices->get_header_notices( $user ),
-			'section_notices'        => $section_notices,
 			'primary_call_to_action' => array(
 				'label' => __( 'View dashboard', 'google-site-kit' ),
 				'url'   => $dashboard_url,
 			),
 			'footer'                 => array(
-				'copy'            => __( 'You received this email because you signed up to receive email reports from Site Kit. If you do not want to receive these emails in the future you can unsubscribe', 'google-site-kit' ), // The space and unsubscribe link are handled in the template.
-				'unsubscribe_url' => $email_settings_url,
-				'links'           => array(
-					array(
-						'label' => __( 'Manage subscription', 'google-site-kit' ),
-						'url'   => $email_settings_url,
-					),
-					array(
-						'label' => __( 'Privacy Policy', 'google-site-kit' ),
-						'url'   => 'https://policies.google.com/privacy',
-					),
-					array(
-						'label' => __( 'Help center', 'google-site-kit' ),
-						'url'   => $help_center_url,
-					),
+				'copy'            => sprintf(
+					/* translators: 1: Unsubscribe link URL, 2: Unsubscribe link inline style CSS. */
+					__( 'You received this email because you signed up to receive email reports from Site Kit. If you do not want to receive these emails in the future you can <a class="link" href="%1$s" style="%2$s">unsubscribe</a>.', 'google-site-kit' ),
+					$email_settings_url,
+					'text-decoration:none;'
 				),
+				'unsubscribe_url' => $email_settings_url,
 			),
 		);
-	}
-
-	/**
-	 * Resolves section notices keyed by section slug.
-	 *
-	 * @since 1.175.0
-	 *
-	 * @param WP_User $user User receiving the report.
-	 * @return array Section notices map.
-	 */
-	private function prepare_section_notices( WP_User $user ) {
-		$section_notices = array();
-		$section_keys    = $this->email_notices->get_section_notice_keys();
-
-		foreach ( $section_keys as $section_key ) {
-			$section_key = sanitize_key( (string) $section_key );
-			if ( '' === $section_key ) {
-				continue;
-			}
-
-			$notices = $this->email_notices->get_section_notices( $user, $section_key );
-			if ( ! empty( $notices ) ) {
-				$section_notices[ $section_key ] = $notices;
-			}
-		}
-
-		return $section_notices;
 	}
 
 	/**
@@ -532,17 +478,17 @@ class Email_Template_Formatter {
 		}
 
 		$format_date = static function ( $value ) {
-			$timestamp = strtotime( $value );
-			if ( ! $timestamp ) {
+			$timezone = BC_Functions::wp_timezone();
+			$date     = date_create_immutable( $value, $timezone );
+			if ( ! $date ) {
 				return $value;
 			}
 
-			$timezone = function_exists( 'wp_timezone' ) ? wp_timezone() : null;
-			if ( $timezone && function_exists( 'wp_date' ) ) {
-				return wp_date( 'M j', $timestamp, $timezone );
+			if ( function_exists( 'wp_date' ) ) {
+				return wp_date( 'M j', $date->getTimestamp(), $timezone );
 			}
 
-			return gmdate( 'M j', $timestamp );
+			return $date->format( 'M j' );
 		};
 
 		return sprintf(

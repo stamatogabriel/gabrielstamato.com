@@ -1,4 +1,4 @@
-FROM wordpress:6.9.4-php8.5-apache
+FROM wordpress:7.1.3-php8.5-apache
 
 # Install useful extensions and tools
 RUN apt-get update && apt-get install -y \
@@ -17,11 +17,11 @@ RUN a2enmod rewrite
 
 # Custom php.ini settings — increase limits for uploads and execution
 RUN { \
-    echo 'upload_max_filesize = 64M'; \
-    echo 'post_max_size = 64M'; \
+    echo 'upload_max_filesize = 1024M'; \
+    echo 'post_max_size = 1024M'; \
     echo 'max_execution_time = 300'; \
     echo 'max_input_vars = 3000'; \
-    echo 'memory_limit = 256M'; \
+    echo 'memory_limit = 512M'; \
     echo 'allow_url_fopen = On'; \
 } > /usr/local/etc/php/conf.d/wordpress-custom.ini
 

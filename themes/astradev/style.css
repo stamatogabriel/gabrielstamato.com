@@ -4,7 +4,7 @@ Theme URI: https://github.com/gabriel/astradev
 Author: Gabriel
 Template: astra
 Description: Astra child theme with a modern developer aesthetic — purple/blue palette, Inter + Fira Code typography, dark mode, and enhanced single-post experience.
-Version: 1.1.0
+Version: 1.2.0
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
@@ -1897,6 +1897,25 @@ html { scroll-behavior: smooth; }
 
 [data-theme="dark"] .pf-project-card { background: var(--ad-bg-surface); }
 
+.pf-project-card__shot {
+    display: block;
+    margin: -1.85rem -1.85rem 1.4rem;
+    border-bottom: 1px solid var(--ad-border);
+    overflow: hidden;
+}
+
+.pf-project-card__shot img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    object-position: top;
+    transition: transform 0.4s ease;
+}
+
+.pf-project-card:hover .pf-project-card__shot img { transform: scale(1.03); }
+
 .pf-project-card__num {
     font-family: var(--ad-font-mono);
     font-size: 0.68rem;
@@ -1964,7 +1983,8 @@ html { scroll-behavior: smooth; }
 [data-theme="dark"] .pf-card-link { color: var(--ad-purple-light) !important; }
 
 /* ── Blog section — make children stack vertically ─────────── */
-#blog .ast-container {
+#blog .ast-container,
+#portfolio .ast-container {
     flex-direction: column;
     align-items: stretch;
 }
